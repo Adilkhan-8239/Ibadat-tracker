@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Adil ki Ibaadat</title>
+<style>
+  :root {
+    --bg: #0a0f0a;
+    --surface: #111811;
+    --surface2: #162016;
+    --border: #1e2e1e;
+    --green: #2ecc71;
+    --green-dark: #27ae60;
+    --green-glow: rgba(46,204,113,0.12);
+    --green-soft: rgba(46,204,113,0.07);
+    --red: #e74c3c;
+    --red-glow: rgba(231,76,60,0.12);
+    --gold: #f0c040;
+    --gold-glow: rgba(240,192,64,0.12);
+    --text: #e0ede0;
+    --muted: #5a7a5a;
+    --white: #ffffff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 14px 70px;
+    gap: 14px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 8px 0 2px;
+    width: 100%;
+  }
+  .header h1 {
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+  .arabic {
+    font-size: 1.3rem;
+    color: var(--gold);
+    margin-top: 3px;
+    letter-spacing: 0.05em;
+  }
+  .header .date {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Streak row */
+  .streak-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .streak-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .streak-num { font-size: 1.9rem; font-weight: 900; line-height: 1; }
+  .streak-num.green { color: var(--green); }
+  .streak-num.gold  { color: var(--gold); }
+  .streak-num.blue  { color: #5dade2; }
+  .streak-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+
+  /* Section card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px 14px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .card-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .card-title span { font-size: 1rem; }
+
+  /* Namaz grid */
+  .namaz-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .namaz-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 14px;
+    transition: all 0.2s;
+  }
+  .namaz-row.done {
+    background: var(--green-soft);
+    border-color: var(--green-dark);
+  }
+  .namaz-row.missed {
+    background: var(--red-glow);
+    border-color: var(--red);
+  }
+  .namaz-info { display: flex; flex-direction: column; gap: 2px; }
+  .namaz-name { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+  .namaz-time { font-size: 0.68rem; color: var(--muted); }
+  .namaz-row.done .namaz-name { color: var(--green); }
+  .namaz-row.missed .namaz-name { color: var(--red); }
+
+  .tick-btns { display: flex; gap: 7px; }
+  .tick-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: none;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+  .tick-btn.active-green {
+    background: var(--green);
+    border-color: var(--green);
+    color: #0a0f0a;
+    font-size: 1.1rem;
+  }
+  .tick-btn.active-red {
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
+    font-size: 1.1rem;
+  }
+
+  /* Missed message */
+  .missed-msg {
+    display: none;
+    background: var(--red-glow);
+    border: 1px solid var(--red);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: #ff8a80;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .missed-msg.show { display: block; }
+
+  /* Single toggles */
+  .toggle-grid { display: flex; flex-direction: column; gap: 8px; }
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    transition: all 0.2s;
+  }
+  .toggle-row.done {
+    background: var(--green-soft);
+    border-color: var(--green-dark);
+  }
+  .toggle-label { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+  .toggle-sub   { font-size: 0.67rem; color: var(--muted); margin-top: 2px; }
+  .toggle-row.done .toggle-label { color: var(--green); }
+
+  .big-tick {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .big-tick.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: #0a0f0a;
+  }
+
+  /* Calendar */
+  .cal-month-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .cal-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .cal-tab {
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: none;
+    font-size: 0.68rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .cal-tab.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: #0a0f0a;
+    font-weight: 700;
+  }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.62rem;
+    color: var(--muted);
+    position: relative;
+  }
+  .cal-day.full    { background: var(--green-glow); border-color: var(--green); color: var(--green); font-weight: 700; }
+  .cal-day.partial { background: rgba(240,192,64,0.1); border-color: var(--gold); color: var(--gold); font-weight: 700; }
+  .cal-day.missed  { background: var(--red-glow); border-color: var(--red); color: var(--red); }
+  .cal-day.today   { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+  .legend {
+    display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.62rem; color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 3px;
+  }
+  .legend-dot.green   { background: var(--green); }
+  .legend-dot.gold    { background: var(--gold); }
+  .legend-dot.red     { background: var(--red); }
+
+  /* Reset */
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 9px 22px;
+    border-radius: 9px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="arabic">☪️ بِسْمِ اللَّهِ</div>
+  <h1>Adil ki Ibaadat</h1>
+  <div class="date" id="dateDisplay"></div>
+</div>
+
+<!-- Streaks -->
+<div class="streak-row">
+  <div class="streak-box">
+    <div class="streak-num green" id="namazStreak">0</div>
+    <div class="streak-label">🕌 Namaz<br>Streak</div>
+  </div>
+  <div class="streak-box">
+    <div class="streak-num gold" id="quranStreak">0</div>
+    <div class="streak-label">📖 Quran<br>Streak</div>
+  </div>
+  <div class="streak-box">
+    <div class="streak-num blue" id="sadqaStreak">0</div>
+    <div class="streak-label">💝 Sadqa<br>Streak</div>
+  </div>
+</div>
+
+<!-- Namaz Card -->
+<div class="card">
+  <div class="card-title"><span>🕌</span> Aaj ki 5 Waqt Namaz</div>
+  <div class="namaz-grid" id="namazGrid"></div>
+  <div class="missed-msg" id="missedMsg">
+    ⚠️ Adil, namaz qaza mat kar — yeh Allah ka haq hai tujh par. Abhi padh le, der mat kar!
+  </div>
+</div>
+
+<!-- Tahajjud + Quran + Sadqa -->
+<div class="card">
+  <div class="card-title"><span>⭐</span> Extra Ibaadat</div>
+  <div class="toggle-grid">
+    <div class="toggle-row" id="row-tahajjud">
+      <div>
+        <div class="toggle-label">Tahajjud</div>
+        <div class="toggle-sub">Raat ki namaz — sabse afzal ibaadat</div>
+      </div>
+      <button class="big-tick" id="btn-tahajjud" onclick="toggleExtra('tahajjud')">○</button>
+    </div>
+    <div class="toggle-row" id="row-quran">
+      <div>
+        <div class="toggle-label">Quran Tilawat</div>
+        <div class="toggle-sub">Chahe thori si — har roz padh</div>
+      </div>
+      <button class="big-tick" id="btn-quran" onclick="toggleExtra('quran')">○</button>
+    </div>
+    <div class="toggle-row" id="row-sadqa">
+      <div>
+        <div class="toggle-label">Sadqa</div>
+        <div class="toggle-sub">Chahe 1 rupay — dil saaf rehta hai</div>
+      </div>
+      <button class="big-tick" id="btn-sadqa" onclick="toggleExtra('sadqa')">○</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar -->
+<div class="card">
+  <div class="cal-month-title" id="calMonthTitle"></div>
+  <div class="cal-tabs" id="calTabs">
+    <button class="cal-tab active" onclick="switchCal('namaz',this)">Namaz</button>
+    <button class="cal-tab" onclick="switchCal('quran',this)">Quran</button>
+    <button class="cal-tab" onclick="switchCal('sadqa',this)">Sadqa</button>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot green"></div> Mukammal</div>
+    <div class="legend-item"><div class="legend-dot gold"></div> Adhoori</div>
+    <div class="legend-item"><div class="legend-dot red"></div> Chhoot gayi</div>
+  </div>
+</div>
+
+<button class="reset-btn" onclick="resetToday()">🔄 Aaj Reset Karo</button>
+
+<script>
+  const KEY = 'adil_ibaadat_v1';
+  const NAMAZ_LIST = [
+    { id:'fajr',   name:'Fajr',    time:'Subah Sawere' },
+    { id:'zuhr',   name:'Zuhr',    time:'Dopahar' },
+    { id:'asr',    name:'Asr',     time:'Sham se Pehle' },
+    { id:'maghrib',name:'Maghrib', time:'Sham ko' },
+    { id:'isha',   name:'Isha',    time:'Raat ko' },
+  ];
+  const EXTRA = ['tahajjud','quran','sadqa'];
+  let currentCal = 'namaz';
+
+  function getData() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+  }
+  function saveData(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function getTodayData() {
+    const data = getData();
+    const t = todayKey();
+    if (!data[t]) data[t] = { namaz:{}, extra:{} };
+    if (!data[t].namaz) data[t].namaz = {};
+    if (!data[t].extra) data[t].extra = {};
+    return { data, t };
+  }
+
+  function markNamaz(id, status) {
+    const { data, t } = getTodayData();
+    if (data[t].namaz[id] === status) {
+      delete data[t].namaz[id];
+    } else {
+      data[t].namaz[id] = status;
+    }
+    saveData(data);
+    render();
+  }
+
+  function toggleExtra(key) {
+    const { data, t } = getTodayData();
+    data[t].extra[key] = !data[t].extra[key];
+    saveData(data);
+    render();
+  }
+
+  function resetToday() {
+    const data = getData();
+    delete data[todayKey()];
+    saveData(data);
+    render();
+  }
+
+  function switchCal(type, btn) {
+    currentCal = type;
+    document.querySelectorAll('.cal-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCal();
+  }
+
+  function calcNamazStreak() {
+    const data = getData();
+    let streak = 0;
+    const d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const entry = data[key];
+      if (entry && entry.namaz) {
+        const done = NAMAZ_LIST.filter(n => entry.namaz[n.id] === 'done').length;
+        if (done === 5) { streak++; d.setDate(d.getDate()-1); }
+        else break;
+      } else break;
+    }
+    return streak;
+  }
+
+  function calcExtraStreak(key) {
+    const data = getData();
+    let streak = 0;
+    const d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const k = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const entry = data[k];
+      if (entry && entry.extra && entry.extra[key]) { streak++; d.setDate(d.getDate()-1); }
+      else break;
+    }
+    return streak;
+  }
+
+  function renderNamaz() {
+    const { data, t } = getTodayData();
+    const namazData = data[t].namaz || {};
+    const grid = document.getElementById('namazGrid');
+    grid.innerHTML = '';
+    let missedCount = 0;
+
+    NAMAZ_LIST.forEach(n => {
+      const status = namazData[n.id];
+      if (status === 'missed') missedCount++;
+
+      const row = document.createElement('div');
+      row.className = 'namaz-row' + (status === 'done' ? ' done' : status === 'missed' ? ' missed' : '');
+      row.innerHTML = `
+        <div class="namaz-info">
+          <div class="namaz-name">${n.name}</div>
+          <div class="namaz-time">${n.time}</div>
+        </div>
+        <div class="tick-btns">
+          <button class="tick-btn ${status==='done'?'active-green':''}" onclick="markNamaz('${n.id}','done')" title="Padh li">✅</button>
+          <button class="tick-btn ${status==='missed'?'active-red':''}" onclick="markNamaz('${n.id}','missed')" title="Chhoot gayi">❌</button>
+        </div>
+      `;
+      grid.appendChild(row);
+    });
+
+    const msg = document.getElementById('missedMsg');
+    msg.className = 'missed-msg' + (missedCount > 0 ? ' show' : '');
+  }
+
+  function renderExtra() {
+    const { data, t } = getTodayData();
+    const extra = data[t].extra || {};
+    EXTRA.forEach(key => {
+      const row = document.getElementById('row-'+key);
+      const btn = document.getElementById('btn-'+key);
+      if (extra[key]) {
+        row.classList.add('done');
+        btn.classList.add('active');
+        btn.textContent = '✅';
+      } else {
+        row.classList.remove('done');
+        btn.classList.remove('active');
+        btn.textContent = '○';
+      }
+    });
+  }
+
+  function renderCal() {
+    const data = getData();
+    const now = new Date();
+    const year = now.getFullYear(), month = now.getMonth();
+    const days = new Date(year, month+1, 0).getDate();
+    const todayDate = now.getDate();
+    const cal = document.getElementById('calGrid');
+    cal.innerHTML = '';
+
+    document.getElementById('calMonthTitle').textContent =
+      now.toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+
+    for (let i = 1; i <= days; i++) {
+      const key = year+'-'+String(month+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
+      const entry = data[key];
+      const div = document.createElement('div');
+      div.className = 'cal-day';
+      div.textContent = i;
+
+      if (currentCal === 'namaz') {
+        if (entry && entry.namaz) {
+          const done = NAMAZ_LIST.filter(n => entry.namaz[n.id] === 'done').length;
+          const missed = NAMAZ_LIST.filter(n => entry.namaz[n.id] === 'missed').length;
+          if (done === 5) div.classList.add('full');
+          else if (done > 0 || missed > 0) div.classList.add('partial');
+          else if (missed > 0) div.classList.add('missed');
+        }
+      } else {
+        if (entry && entry.extra && entry.extra[currentCal]) div.classList.add('full');
+        else if (entry) div.classList.add('missed');
+      }
+
+      if (i === todayDate) div.classList.add('today');
+      cal.appendChild(div);
+    }
+  }
+
+  function render() {
+    const now = new Date();
+    document.getElementById('dateDisplay').textContent =
+      now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+    renderNamaz();
+    renderExtra();
+    renderCal();
+
+    document.getElementById('namazStreak').textContent = calcNamazStreak();
+    document.getElementById('quranStreak').textContent = calcExtraStreak('quran');
+    document.getElementById('sadqaStreak').textContent = calcExtraStreak('sadqa');
+  }
+
+  render();
+</script>
+</body>
+</html>
